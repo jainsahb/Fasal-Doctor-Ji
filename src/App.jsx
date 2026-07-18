@@ -122,6 +122,7 @@ const stages = [
   "Fruiting",
   "Harvest ready",
 ];
+const apiUrl = (path) => `${import.meta.env.VITE_API_URL || ""}${path}`;
 const initialHistory = () =>
   JSON.parse(localStorage.getItem("fasal-history") || "[]");
 const makeThumbnail = (file) =>
@@ -153,10 +154,6 @@ function Button({ children, variant = "primary", ...props }) {
     </button>
   );
 }
-function Chip({ children }) {
-  return <span className="chip">{children}</span>;
-}
-
 export default function App() {
   const [lang, setLang] = useState(localStorage.getItem("fasal-lang") || "en");
   const [screen, setScreen] = useState("scan");
@@ -199,7 +196,7 @@ export default function App() {
             body.append(key, value),
           );
           body.append("language", lang);
-          const response = await fetch("/api/diagnose", {
+          const response = await fetch(apiUrl("/api/diagnose"), {
             method: "POST",
             body,
           });
@@ -250,8 +247,14 @@ export default function App() {
       body.append("image", file);
       Object.entries(meta).forEach(([key, value]) => body.append(key, value));
       body.append("language", lang);
-      const response = await fetch("/api/diagnose", { method: "POST", body });
-      if (!response.ok) throw new Error("Request failed");
+      const response = await fetch(apiUrl("/api/diagnose"), {
+        method: "POST",
+        body,
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || "Request failed");
+      }
       const result = await response.json();
       const entry = {
         id: Date.now(),
@@ -265,8 +268,8 @@ export default function App() {
       setDiagnosis(entry);
       saveHistory({ ...entry, image: await makeThumbnail(file) });
       setScreen("result");
-    } catch {
-      setError(t.error);
+    } catch (requestError) {
+      setError(requestError.message || t.error);
     } finally {
       setLoading(false);
     }
@@ -464,7 +467,6 @@ function Result({ t, diagnosis, setScreen, reset }) {
             <i style={{ width: `${diagnosis.confidence}%` }} />
           </div>
         </div>
-        <Chip>{t.demo}</Chip>
         <h1>{diagnosis.disease}</h1>
         <em>{diagnosis.scientificName}</em>
         <p>{diagnosis.summary}</p>

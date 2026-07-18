@@ -15,26 +15,29 @@ Fasal Doctor Ji is a bilingual, mobile-first PWA that helps smallholder farmers 
 ## Architecture
 
 ```text
-React PWA → Express API → Kindwise crop.health (vision) → GPT-4o (localized advice)
+React PWA → Express API → Kindwise crop.health (vision) → OpenAI Responses API (localized advice)
                               ↓
                       Supabase / Postgres (production history)
 ```
 
-The submitted prototype has an intentional demo-safe backend response when API keys are not set. The `/api/diagnose` endpoint is the integration boundary: connect Kindwise there first, then send its diagnosis together with crop, region, and stage to the LLM. This protects the user journey in a live demo while preserving the required two-stage AI design.
+The server is a real two-stage pipeline. `POST /api/diagnose` validates the photo, sends it to Kindwise crop.health, then requests structured, localized advice from OpenAI using the classifier result plus crop, region, and stage. It returns a clear `503` when keys are missing and never sends a mock diagnosis.
+
+The backend is organised by responsibility: `config/` contains environment and database access, `routes/` declares endpoints, `controllers/` handles HTTP, `services/` owns the AI and persistence workflow, `models/` maps validated data, `middlewares/` handles uploads and errors, and `utils/` holds shared primitives.
 
 ## Run locally
 
 1. Install Node.js 20+.
 2. Run `npm install`.
 3. Copy `.env.example` to `.env` and add keys when ready.
-4. Run `npm run dev`.
-5. Open `http://localhost:5173` on a phone or browser.
+4. Optional: run `server/database/schema.sql` in Supabase SQL Editor to store server-side scans.
+5. Run `npm run dev`.
+6. Open `http://localhost:5173` on a phone or browser.
 
 ## Required API keys for production
 
 - `KINDWISE_API_KEY` for crop.health disease classification
 - `OPENAI_API_KEY` for farmer-readable, region/stage-specific recommendations
-- Supabase project URL/key when replacing local history with shared persistence
+- `SUPABASE_URL` and `SUPABASE_SECRET_KEY` to persist results in a `scans` table (optional; device history still works without it)
 
 Never commit `.env` or live keys.
 
@@ -44,7 +47,6 @@ The interface uses large tap targets, an icon-forward layout, Hindi support, a h
 
 ## What’s next
 
-- Connect Kindwise and GPT-4o to the existing server integration boundary
-- Persist scans in Supabase and add a secure user/device identifier
+- Add a secure user/device identifier before showing shared scan history
 - Add weather timing and a small curated nearby-resources dataset after the core AI pipeline is live
 - Community forum and yield impact estimation remain future work, outside this MVP

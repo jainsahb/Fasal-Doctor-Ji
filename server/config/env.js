@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-const requiredForDiagnosis = ["KINDWISE_API_KEY", "OPENAI_API_KEY"];
+const requiredForDiagnosis = ["KINDWISE_API_KEY", "GROQ_API_KEY"];
 
 export const env = Object.freeze({
   port: Number(process.env.PORT || 3001),
@@ -8,8 +8,8 @@ export const env = Object.freeze({
   kindwiseEndpoint:
     process.env.KINDWISE_ENDPOINT ||
     "https://crop.kindwise.com/api/v1/identification",
-  openaiApiKey: process.env.OPENAI_API_KEY || "",
-  openaiModel: process.env.OPENAI_MODEL || "gpt-5.6-luna",
+  groqApiKey: process.env.GROQ_API_KEY || "",
+  groqModel: process.env.GROQ_MODEL || "openai/gpt-oss-120b",
   supabaseUrl: process.env.SUPABASE_URL || "",
   supabaseServiceRoleKey: process.env.SUPABASE_SECRET_KEY || "",
 });

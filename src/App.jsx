@@ -48,6 +48,8 @@ const copy = {
     error:
       "We could not check this photo. Please try again with a clear photo of one leaf.",
     queued: "Photo saved safely. We will check it when you reconnect.",
+    lowConfidenceMessage:
+      "We couldn't confidently identify this. Try a clearer, closer photo of the affected leaf/stem, or check with a local agricultural expert.",
   },
   hi: {
     app: "फसल डॉक्टर जी",
@@ -94,6 +96,8 @@ const copy = {
     error:
       "यह फोटो जाँची नहीं जा सकी। एक पत्ती की साफ़ फोटो लेकर फिर कोशिश करें।",
     queued: "फोटो सुरक्षित सेव हो गई है। इंटरनेट आने पर इसकी जाँच होगी।",
+    lowConfidenceMessage:
+      "हमें विश्वसनीय पहचान नहीं मिली। कृपया पत्ती/तने की साफ फोटो लें या किसी कृषि विशेषज्ञ से सलाह लें।",
   },
 };
 
@@ -266,7 +270,9 @@ export default function App() {
         ...result,
       };
       setDiagnosis(entry);
-      saveHistory({ ...entry, image: await makeThumbnail(file) });
+      if (!result.lowConfidence) {
+        saveHistory({ ...entry, image: await makeThumbnail(file) });
+      }
       setScreen("result");
     } catch (requestError) {
       setError(requestError.message || t.error);
@@ -450,6 +456,29 @@ function Select({ label, value, items, change }) {
   );
 }
 function Result({ t, diagnosis, setScreen, reset }) {
+  if (diagnosis.lowConfidence) {
+    return (
+      <div className="result-page">
+        <p className="eyebrow">{t.result}</p>
+        <div className="result-photo">
+          <img src={diagnosis.image} alt="Scanned crop" />
+        </div>
+        <div className="diagnosis-card">
+          <div className="confidence">
+            <div>
+              <span>{t.confidence}</span>
+              <strong>{diagnosis.confidence}%</strong>
+            </div>
+            <div className="meter">
+              <i style={{ width: `${diagnosis.confidence}%` }} />
+            </div>
+          </div>
+          <p className="low-confidence-message">⚠ {t.lowConfidenceMessage}</p>
+        </div>
+        <Button onClick={reset}>{t.retry}</Button>
+      </div>
+    );
+  }
   return (
     <div className="result-page">
       <p className="eyebrow">{t.result}</p>

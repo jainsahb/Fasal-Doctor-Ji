@@ -8,10 +8,23 @@ import { AppError } from "../utils/AppError.js";
 export async function diagnoseCrop(input) {
   const missing = missingDiagnosisConfiguration();
   if (missing.length) {
-    throw new AppError("The diagnosis service is not configured yet. Add the required API keys to the server environment.", 503);
+    throw new AppError(
+      "The diagnosis service is not configured yet. Add the required API keys to the server environment.",
+      503,
+    );
   }
 
   const identification = await identifyCropDisease(input.image, input.language);
+
+  const LOW_CONFIDENCE_THRESHOLD = 60;
+
+  if (identification.confidence < LOW_CONFIDENCE_THRESHOLD) {
+    return {
+      lowConfidence: true,
+      confidence: identification.confidence,
+    };
+  }
+
   const advisory = await createLocalizedAdvisory({ ...input, identification });
   const diagnosis = {
     disease: identification.name,

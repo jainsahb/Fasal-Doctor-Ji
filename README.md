@@ -15,12 +15,12 @@ Fasal Doctor Ji is a bilingual, mobile-first PWA that helps smallholder farmers 
 ## Architecture
 
 ```text
-React PWA → Express API → Kindwise crop.health (vision) → OpenAI Responses API (localized advice)
+React PWA → Express API → Kindwise crop.health (vision) → Groq Responses API  (beta) (localized advice)
                               ↓
                       Supabase / Postgres (production history)
 ```
 
-The server is a real two-stage pipeline. `POST /api/diagnose` validates the photo, sends it to Kindwise crop.health, then requests structured, localized advice from OpenAI using the classifier result plus crop, region, and stage. It returns a clear `503` when keys are missing and never sends a mock diagnosis.
+The server is a real two-stage pipeline. `POST /api/diagnose` validates the photo, sends it to Kindwise crop.health, then requests structured, localized advice from GROQ using the classifier result plus crop, region, and stage. It returns a clear `503` when keys are missing and never sends a mock diagnosis.
 
 The backend is organised by responsibility: `config/` contains environment and database access, `routes/` declares endpoints, `controllers/` handles HTTP, `services/` owns the AI and persistence workflow, `models/` maps validated data, `middlewares/` handles uploads and errors, and `utils/` holds shared primitives.
 
@@ -36,7 +36,7 @@ The backend is organised by responsibility: `config/` contains environment and d
 ## Required API keys for production
 
 - `KINDWISE_API_KEY` for crop.health disease classification
-- `OPENAI_API_KEY` for farmer-readable, region/stage-specific recommendations
+- `GROQ_API_KEY` for farmer-readable, region/stage-specific recommendations
 - `SUPABASE_URL` and `SUPABASE_SECRET_KEY` to persist results in a `scans` table (optional; device history still works without it)
 
 Never commit `.env` or live keys.

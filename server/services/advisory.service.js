@@ -15,7 +15,13 @@ const responseSchema = {
   },
 };
 
-export async function createLocalizedAdvisory({ crop, region, stage, language, identification }) {
+export async function createLocalizedAdvisory({
+  crop,
+  region,
+  stage,
+  language,
+  identification,
+}) {
   const prompt = [
     "Create practical crop-care guidance for a smallholder farmer in India.",
     `Reply in ${language === "hi" ? "Hindi" : "English"}.`,
@@ -25,28 +31,61 @@ export async function createLocalizedAdvisory({ crop, region, stage, language, i
     "Keep each action brief. Do not invent pesticide doses or registration claims. For chemical actions, direct the farmer to a locally registered product's label. State that this is an AI screening, not a laboratory result.",
   ].join("\n");
 
-  const response = await fetchWithTimeout("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${env.openaiApiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: env.openaiModel,
-      input: [{ role: "user", content: [{ type: "input_text", text: prompt }] }],
-      text: {
-        format: { type: "json_schema", name: "crop_advisory", strict: true, schema: responseSchema },
+  const response = await fetchWithTimeout(
+    "https://api.groq.com/openai/v1/responses",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.groqApiKey}`,
+        "Content-Type": "application/json",
       },
-    }),
-  });
+      body: JSON.stringify({
+        model: env.groqModel,
+        instructions: "You are an agricultural extension officer...",
+        input: [
+          { role: "user", content: [{ type: "input_text", text: prompt }] },
+        ],
+        text: {
+          format: {
+            type: "json_schema",
+            name: "crop_advisory",
+            strict: true,
+            schema: responseSchema,
+          },
+        },
+      }),
+    },
+  );
 
-  if (!response.ok) throw new AppError("The advisory service is unavailable. Please retry.", 502);
+  if (!response.ok)
+    throw new AppError(
+      "The advisory service is unavailable. Please retry.",
+      502,
+    );
 
   const payload = await response.json();
-  if (!payload.output_text) {
-    throw new AppError("The advisory service returned an incomplete response.", 502);
+  console.log("------------------------------------------")
+  console.log("Raw Payload: ", payload);
+  console.log("------------------------------------------")
+
+  const messageContent = payload.output?.find((item) => item.type === "message");
+  const textBlock = messageContent?.content?.find(
+    (block) => block.type === "output_text",
+  );
+
+  if (!textBlock.text) {
+    throw new AppError(
+      "The advisory service returned an incomplete response.",
+      502,
+    );
   }
 
   try {
-    return JSON.parse(payload.output_text);
+    return JSON.parse(textBlock.text);
   } catch {
-    throw new AppError("The advisory service returned an invalid response.", 502);
+    throw new AppError(
+      "The advisory service returned an invalid response.",
+      502,
+    );
   }
 }

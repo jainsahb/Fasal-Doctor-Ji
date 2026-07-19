@@ -87,7 +87,7 @@ DB (Supabase/Postgres)
 - Frontend: React PWA
 - Backend: Express.js (Node)
 - Disease ID: Kindwise crop.health API (do not train a custom CNN — no time budget for this)
-- Reasoning/localization: OpenAI GPT-4o via Codex-managed integration
+- Reasoning/localization: Groq openai/gpt-oss-120b via Codex-managed integration
 - DB: Supabase (Postgres)
 - Weather (stretch only): OpenWeatherMap free tier
 - TTS (nice-to-have): browser-native Web Speech API — no backend cost

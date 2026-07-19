@@ -64,11 +64,9 @@ export async function createLocalizedAdvisory({
     );
 
   const payload = await response.json();
-  console.log("------------------------------------------")
-  console.log("Raw Payload: ", payload);
-  console.log("------------------------------------------")
-
-  const messageContent = payload.output?.find((item) => item.type === "message");
+  const messageContent = payload.output?.find(
+    (item) => item.type === "message",
+  );
   const textBlock = messageContent?.content?.find(
     (block) => block.type === "output_text",
   );

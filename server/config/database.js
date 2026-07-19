@@ -7,15 +7,16 @@ export async function insertScan(scan) {
   const response = await fetch(`${env.supabaseUrl}/rest/v1/scans`, {
     method: "POST",
     headers: {
-      apikey: env.supabaseServiceRoleKey,
-      Authorization: `Bearer ${env.supabaseServiceRoleKey}`,
+      apikey: env.supabaseSecretKey,
+      Authorization: `Bearer ${env.supabaseSecretKey}`,
       "Content-Type": "application/json",
       Prefer: "return=representation",
     },
     body: JSON.stringify(scan),
   });
 
-  if (!response.ok) throw new AppError("Could not save this scan. Please retry.", 502);
+  if (!response.ok)
+    throw new AppError("Could not save this scan. Please retry.", 502);
   const [savedScan] = await response.json();
   return savedScan;
 }

@@ -11,7 +11,7 @@ export const env = Object.freeze({
   groqApiKey: process.env.GROQ_API_KEY || "",
   groqModel: process.env.GROQ_MODEL || "openai/gpt-oss-120b",
   supabaseUrl: process.env.SUPABASE_URL || "",
-  supabaseServiceRoleKey: process.env.SUPABASE_SECRET_KEY || "",
+  supabaseSecretKey: process.env.SUPABASE_SECRET_KEY || "",
 });
 
 export function missingDiagnosisConfiguration() {
@@ -19,5 +19,5 @@ export function missingDiagnosisConfiguration() {
 }
 
 export function isDatabaseConfigured() {
-  return Boolean(env.supabaseUrl && env.supabaseServiceRoleKey);
+  return Boolean(env.supabaseUrl && env.supabaseSecretKey);
 }
